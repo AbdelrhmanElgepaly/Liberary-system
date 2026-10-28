@@ -29,7 +29,7 @@ void createAccdbIfMissing(const QString& nativePath) {
     QByteArray attrs = ("CREATE_DBV12=" + nativePath).toLocal8Bit();
     attrs.append('\0');
     attrs.append('\0');  // attribute list ends with a double NUL
-    if (!SQLConfigDataSourceA(nullptr, ODBC_ADD_DSN, kAccessDriver, attrs.constData()))
+    if (!SQLConfigDataSource(nullptr, ODBC_ADD_DSN, kAccessDriver, attrs.constData()))
         throw DbException(QString("The Access database file could not be created:\n%1%2")
                               .arg(nativePath, kHelp));
 }
