@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QSqlError>
 
+#include <string>
+
 #ifdef Q_OS_WIN
 #define NOMINMAX
 #include <windows.h>
@@ -26,10 +28,11 @@ const char* kHelp =
 void createAccdbIfMissing(const QString& nativePath) {
     if (QFileInfo::exists(nativePath)) return;
     QDir().mkpath(QFileInfo(nativePath).absolutePath());
-    QByteArray attrs = ("CREATE_DBV12=" + nativePath).toLocal8Bit();
-    attrs.append('\0');
-    attrs.append('\0');  // attribute list ends with a double NUL
-    if (!SQLConfigDataSource(nullptr, ODBC_ADD_DSN, kAccessDriver, attrs.constData()))
+    // The project is built with UNICODE, so use the wide ODBC call explicitly.
+    std::wstring attrs = L"CREATE_DBV12=" + nativePath.toStdWString();
+    attrs.push_back(L'\0');  // together with the string's own terminator = double NUL
+    const std::wstring driver = QString::fromLatin1(kAccessDriver).toStdWString();
+    if (!SQLConfigDataSourceW(nullptr, ODBC_ADD_DSN, driver.c_str(), attrs.c_str()))
         throw DbException(QString("The Access database file could not be created:\n%1%2")
                               .arg(nativePath, kHelp));
 }
