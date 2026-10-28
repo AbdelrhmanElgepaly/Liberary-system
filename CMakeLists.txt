@@ -23,7 +23,7 @@ add_library(LibraryCore STATIC
 target_include_directories(LibraryCore PUBLIC src)
 target_link_libraries(LibraryCore PUBLIC Qt6::Core Qt6::Sql)
 if(WIN32)
-    target_link_libraries(LibraryCore PUBLIC odbccp32)   # SQLConfigDataSource (creates the .accdb)
+    target_link_libraries(LibraryCore PUBLIC odbccp32 legacy_stdio_definitions)   # SQLConfigDataSource (creates the .accdb)
 endif()
 
 # --- layer 2: user interface ------------------------------------------------------------------
