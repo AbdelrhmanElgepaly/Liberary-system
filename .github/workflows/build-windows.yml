@@ -1,0 +1,47 @@
+# Builds LibraryManager.exe on a free Windows machine at GitHub and publishes it as a download.
+# Use: put the project in a GitHub repository, open the "Actions" tab, choose
+#      "Build Windows exe" and press "Run workflow". After ~10 minutes download the
+#      "LibraryManager-windows" artifact (a zip containing the exe and everything it needs).
+name: Build Windows exe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Qt 6 (MSVC 64-bit)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.7.3'
+          host: windows
+          target: desktop
+          arch: win64_msvc2019_64
+          cache: true
+
+      - name: Set up the Visual Studio compiler
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Collect the exe and the Qt files it needs
+        run: |
+          New-Item -ItemType Directory -Path dist | Out-Null
+          Copy-Item build\LibraryManager.exe dist\
+          windeployqt --release --no-translations --compiler-runtime dist\LibraryManager.exe
+          Copy-Item README.md dist\
+          Copy-Item docs dist\docs -Recurse
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LibraryManager-windows
+          path: dist
